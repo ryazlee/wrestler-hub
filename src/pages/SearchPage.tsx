@@ -69,7 +69,7 @@ export function SearchPage() {
     const name = `${option.firstName} ${option.lastName}`.trim()
     setQuery(name)
     setSearchParams({ q: name })
-    navigate(`/wrestler/${option.twId}`)
+    navigate(`/wrestler/${option.id}`)
   }
 
   return (

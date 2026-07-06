@@ -1,9 +1,14 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom'
 import { AppLayout } from './components/AppLayout'
 import { SearchPage } from './pages/SearchPage'
-import { FloWrestlerPage, WrestlerPage } from './pages/WrestlerPage'
+import { WrestlerPage } from './pages/WrestlerPage'
 
 const basename = import.meta.env.BASE_URL.replace(/\/$/, '')
+
+function FloLegacyRedirect() {
+  const { floId } = useParams<{ floId: string }>()
+  return <Navigate to={`/wrestler/${floId ?? ''}`} replace />
+}
 
 function App() {
   return (
@@ -11,8 +16,8 @@ function App() {
       <Routes>
         <Route element={<AppLayout />}>
           <Route path="/" element={<SearchPage />} />
-          <Route path="/wrestler/:twId" element={<WrestlerPage />} />
-          <Route path="/flo/:floId" element={<FloWrestlerPage />} />
+          <Route path="/wrestler/:id" element={<WrestlerPage />} />
+          <Route path="/flo/:floId" element={<FloLegacyRedirect />} />
         </Route>
       </Routes>
     </BrowserRouter>

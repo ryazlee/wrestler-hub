@@ -18,16 +18,6 @@ interface ExternalIdLink {
 function externalIdLinks(profile: WrestlerProfile): ExternalIdLink[] {
   const links: ExternalIdLink[] = []
 
-  if (profile.twId) {
-    links.push({
-      platform: 'trackwrestling',
-      id: profile.twId,
-      url:
-        profile.trackwrestlingUrl ??
-        `https://www.trackwrestling.com/tw/membership/ViewProfile.jsp?twId=${profile.twId}`,
-    })
-  }
-
   if (profile.floId) {
     links.push({
       platform: 'flowrestling',
@@ -35,6 +25,16 @@ function externalIdLinks(profile: WrestlerProfile): ExternalIdLink[] {
       url:
         profile.flowrestlingUrl ??
         `https://www.flowrestling.org/nextgen/people/${profile.floId}`,
+    })
+  }
+
+  if (profile.twId) {
+    links.push({
+      platform: 'trackwrestling',
+      id: profile.twId,
+      url:
+        profile.trackwrestlingUrl ??
+        `https://www.trackwrestling.com/tw/membership/ViewProfile.jsp?twId=${profile.twId}`,
     })
   }
 

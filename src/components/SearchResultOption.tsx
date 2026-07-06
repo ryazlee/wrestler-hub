@@ -13,7 +13,7 @@ export function SearchResultOption({ option, optionProps }: SearchResultOptionPr
   const subtitle = [
     `${option.hometown}, ${option.state}`,
     option.matchType === 'city' ? 'City match' : null,
-    option.floId ? 'Flo linked' : null,
+    option.floId ? 'Flo profile' : 'Trackwrestling only',
   ]
     .filter(Boolean)
     .join(' · ')

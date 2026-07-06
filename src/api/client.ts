@@ -24,8 +24,8 @@ export async function search(query: string): Promise<SearchResult[]> {
   return data.results ?? []
 }
 
-export async function fetchWrestlerByTwId(twId: string): Promise<WrestlerData> {
-  const response = await fetch(`${API_BASE}/wrestler/tw/${twId}`)
+export async function fetchWrestler(id: string): Promise<WrestlerData> {
+  const response = await fetch(`${API_BASE}/wrestler/${encodeURIComponent(id)}`)
   if (!response.ok) {
     const body = await response.json().catch(() => ({}))
     throw new Error(body.message ?? body.error ?? 'Failed to load wrestler')
@@ -34,12 +34,12 @@ export async function fetchWrestlerByTwId(twId: string): Promise<WrestlerData> {
   return response.json()
 }
 
-export async function fetchWrestlerByFloId(floId: string): Promise<WrestlerData> {
-  const response = await fetch(`${API_BASE}/wrestler/flow/${floId}`)
-  if (!response.ok) {
-    const body = await response.json().catch(() => ({}))
-    throw new Error(body.message ?? body.error ?? 'Failed to load wrestler')
-  }
+/** @deprecated Use fetchWrestler with the canonical Flo or TW id. */
+export async function fetchWrestlerByTwId(twId: string): Promise<WrestlerData> {
+  return fetchWrestler(twId)
+}
 
-  return response.json()
+/** @deprecated Use fetchWrestler with the canonical Flo id. */
+export async function fetchWrestlerByFloId(floId: string): Promise<WrestlerData> {
+  return fetchWrestler(floId)
 }

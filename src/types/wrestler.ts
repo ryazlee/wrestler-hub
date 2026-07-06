@@ -78,6 +78,7 @@ export interface HeadToHeadRecord {
 }
 
 export interface SearchResult {
+  id: string
   twId: string
   firstName: string
   lastName: string

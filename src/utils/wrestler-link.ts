@@ -30,8 +30,8 @@ export function wrestlerSearchPath(
   twId?: string,
   floId?: string,
 ): string {
+  if (floId) return `/wrestler/${floId}`
   if (twId) return `/wrestler/${twId}`
-  if (floId) return `/flo/${floId}`
 
   const q = name.trim()
   return `/?q=${encodeURIComponent(q)}`

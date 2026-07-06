@@ -94,6 +94,10 @@ async function floFetch<T>(path: string): Promise<T | null> {
   return json.data
 }
 
+export async function fetchFloAthlete(floId: string): Promise<FloAthlete | null> {
+  return floFetch<FloAthlete>(`/athletes/${floId}`)
+}
+
 export async function fetchFloWrestler(floId: string): Promise<FloWrestler | null> {
   const [athlete, stats, results] = await Promise.all([
     floFetch<FloAthlete>(`/athletes/${floId}`),

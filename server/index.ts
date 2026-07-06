@@ -1,9 +1,16 @@
 import cors from 'cors'
 import express from 'express'
 import {
+  fetchFloAthlete,
   fetchFloWrestler,
   resolveFloIdFromTwId,
 } from './flowrestling.js'
+import {
+  floSignalsFromAthlete,
+  profilesLikelyMatch,
+  twSignalsFromScraped,
+  twSignalsFromSearch,
+} from './profile-link.js'
 import { fetchWrestler, searchWrestlers, searchWrestlersByHometown } from './trackwrestling.js'
 import { parseSearchQuery } from './search-query.js'
 import { mergeWrestlerData } from './wrestler-data.js'
@@ -67,7 +74,16 @@ app.get('/api/search', async (req, res) => {
     const enriched = await Promise.all(
       merged.map(async (result) => {
         const floId = await resolveFloIdFromTwId(result.twId).catch(() => null)
-        return { ...result, floId: floId ?? undefined }
+        if (!floId) return result
+
+        const athlete = await fetchFloAthlete(floId).catch(() => null)
+        if (!athlete) return result
+
+        const twSignals = twSignalsFromSearch(result)
+        const floSignals = floSignalsFromAthlete(athlete)
+        if (!profilesLikelyMatch(twSignals, floSignals)) return result
+
+        return { ...result, floId }
       }),
     )
 
@@ -82,12 +98,25 @@ app.get('/api/search', async (req, res) => {
 })
 
 async function handleTwWrestler(twId: string) {
-  const [tw, floId] = await Promise.all([
-    fetchWrestler(twId),
-    resolveFloIdFromTwId(twId).catch(() => null),
-  ])
+  const tw = await fetchWrestler(twId)
+  const floId = await resolveFloIdFromTwId(twId).catch(() => null)
 
-  const flo = floId ? await fetchFloWrestler(floId).catch(() => null) : null
+  let flo = null
+  if (floId) {
+    const candidate = await fetchFloWrestler(floId).catch(() => null)
+    if (candidate) {
+      const twSignals = twSignalsFromScraped(tw)
+      const floSignals = floSignalsFromAthlete(candidate.athlete, candidate)
+      if (profilesLikelyMatch(twSignals, floSignals)) {
+        flo = candidate
+      } else {
+        console.warn(
+          `Rejected Flo link for TW ${twId} -> Flo ${floId} (${tw.name} vs ${candidate.athlete.firstName} ${candidate.athlete.lastName})`,
+        )
+      }
+    }
+  }
+
   return mergeWrestlerData(tw, flo)
 }
 

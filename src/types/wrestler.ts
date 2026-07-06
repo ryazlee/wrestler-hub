@@ -3,6 +3,8 @@ export interface CareerRecord {
   losses: number
 }
 
+export type CareerLevel = 'hs' | 'college' | 'other'
+
 export interface WrestlerProfile {
   name: string
   school: string
@@ -30,6 +32,7 @@ export interface Accolade {
   year: number
   event?: string
   placement?: string
+  level?: CareerLevel
 }
 
 export interface TimelineEntry {
@@ -41,6 +44,7 @@ export interface TimelineEntry {
   techs?: number
   majors?: number
   source?: 'trackwrestling' | 'flowrestling'
+  level?: CareerLevel
 }
 
 export interface Match {
@@ -54,6 +58,7 @@ export interface Match {
   score?: string
   event: string
   weight?: number
+  level?: CareerLevel
 }
 
 export interface WrestlerData {

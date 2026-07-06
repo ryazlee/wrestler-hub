@@ -1,4 +1,5 @@
 import type { FloEventResult, FloSeasonStats, FloWrestler } from './flowrestling.js'
+import { classifyFloLevel, classifyFromEvent, type CareerLevel } from './level.js'
 import type { ScrapedWrestler } from './trackwrestling.js'
 
 export interface CareerRecord {
@@ -31,6 +32,7 @@ export interface Accolade {
   year: number
   event?: string
   placement?: string
+  level?: 'hs' | 'college' | 'other'
 }
 
 export interface TimelineEntry {
@@ -42,6 +44,7 @@ export interface TimelineEntry {
   techs?: number
   majors?: number
   source?: 'trackwrestling' | 'flowrestling'
+  level?: 'hs' | 'college' | 'other'
 }
 
 export interface Match {
@@ -55,6 +58,7 @@ export interface Match {
   score?: string
   event: string
   weight?: number
+  level?: 'hs' | 'college' | 'other'
 }
 
 export interface WrestlerData {
@@ -117,6 +121,7 @@ function floResultsToMatches(results: FloEventResult[]): Match[] {
         score: bout.result,
         event: event.name,
         weight: bout.weight ? parseInt(bout.weight, 10) || undefined : undefined,
+        level: classifyFromEvent(bout.level, event.name, bout.athlete.teamName),
       })
     }
   }
@@ -159,13 +164,16 @@ function floSeasonsToTimeline(
   flo: FloWrestler,
   teamName: string,
 ): TimelineEntry[] {
-  const seasons: FloSeasonStats[] = []
+  const seasons: { season: FloSeasonStats; level: CareerLevel }[] = []
 
-  for (const level of flo.stats?.perLevelStats ?? []) {
-    seasons.push(...(level.perSeasonStats ?? []))
+  for (const levelStats of flo.stats?.perLevelStats ?? []) {
+    const level = classifyFloLevel(levelStats.level)
+    for (const season of levelStats.perSeasonStats ?? []) {
+      seasons.push({ season, level })
+    }
   }
 
-  return seasons.map((season) => ({
+  return seasons.map(({ season, level }) => ({
     year: seasonToYear(season.season),
     season: season.season,
     team: teamName,
@@ -174,6 +182,7 @@ function floSeasonsToTimeline(
     techs: season.techs,
     majors: season.majors,
     source: 'flowrestling' as const,
+    level,
   }))
 }
 
@@ -188,6 +197,7 @@ function twToPartial(tw: ScrapedWrestler): WrestlerData {
         year,
         team: tw.team,
         source: 'trackwrestling',
+        level: classifyFromEvent(undefined, tw.team),
       })
     }
   }
@@ -200,12 +210,14 @@ function twToPartial(tw: ScrapedWrestler): WrestlerData {
         year: parseInt(p.date.slice(0, 4), 10),
         event: p.event,
         placement: p.placementLabel,
+        level: classifyFromEvent(p.event, tw.team),
       })),
     ...tw.sigWins.map((w) => ({
       title: 'Significant Win',
       year: parseInt(w.date.slice(0, 4), 10),
       event: w.event,
       placement: `vs ${w.opponent} (${w.method})`,
+      level: classifyFromEvent(w.event, w.opponentSchool ?? tw.team),
     })),
   ]
 
@@ -237,6 +249,7 @@ function twToPartial(tw: ScrapedWrestler): WrestlerData {
       method: m.method ?? m.round ?? '—',
       event: m.event,
       weight: m.weight ? parseInt(m.weight, 10) || undefined : undefined,
+      level: classifyFromEvent(m.event, m.wrestlerTeam),
     })),
   }
 }

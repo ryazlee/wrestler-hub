@@ -59,6 +59,7 @@ export interface FloStats {
   techs: number
   majors: number
   perLevelStats?: {
+    level?: string
     perSeasonStats: FloSeasonStats[]
   }[]
 }

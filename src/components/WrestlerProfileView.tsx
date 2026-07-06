@@ -4,8 +4,17 @@ import Typography from '@mui/material/Typography'
 import { useMemo, useState } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import type { WrestlerData } from '../types/wrestler'
+import {
+  filterAccolades,
+  filterMatches,
+  filterTimeline,
+  hasCollegeData,
+  profileForLevel,
+  type LevelFilter,
+} from '../utils/level'
 import { computeHeadToHead } from '../utils/stats'
 import { HeadToHead } from './HeadToHead'
+import { LevelFilterToggle } from './LevelFilterToggle'
 import { MatchHistory } from './MatchHistory'
 import { ProfileHeader } from './ProfileHeader'
 import { Tabs } from './Tabs'
@@ -26,20 +35,38 @@ function TabEmptyState({ message }: { message: string }) {
 
 export function WrestlerProfileView({ data }: WrestlerProfileViewProps) {
   const [tab, setTab] = useState('timeline')
+  const [levelFilter, setLevelFilter] = useState<LevelFilter>('all')
 
-  const headToHead = useMemo(
-    () => computeHeadToHead(data.matches),
-    [data.matches],
+  const hasCollege = useMemo(() => hasCollegeData(data), [data])
+
+  const timeline = useMemo(
+    () => filterTimeline(data.timeline, levelFilter),
+    [data.timeline, levelFilter],
+  )
+  const accolades = useMemo(
+    () => filterAccolades(data.accolades, levelFilter),
+    [data.accolades, levelFilter],
+  )
+  const matches = useMemo(
+    () => filterMatches(data.matches, levelFilter),
+    [data.matches, levelFilter],
+  )
+
+  const headToHead = useMemo(() => computeHeadToHead(matches), [matches])
+
+  const displayProfile = useMemo(
+    () => profileForLevel(data.profile, data.timeline, data.matches, levelFilter),
+    [data.profile, data.timeline, data.matches, levelFilter],
   )
 
   const tabs = [
-    { id: 'timeline', label: 'Timeline', count: data.timeline.length || undefined },
+    { id: 'timeline', label: 'Timeline', count: timeline.length || undefined },
     {
       id: 'tournaments',
       label: 'Tournaments',
-      count: data.accolades.length || undefined,
+      count: accolades.length || undefined,
     },
-    { id: 'matches', label: 'Matches', count: data.matches.length },
+    { id: 'matches', label: 'Matches', count: matches.length },
     { id: 'opponents', label: 'Opponents', count: headToHead.length || undefined },
   ]
 
@@ -51,32 +78,38 @@ export function WrestlerProfileView({ data }: WrestlerProfileViewProps) {
         </Link>
       </Box>
 
-      <ProfileHeader profile={data.profile} />
+      <LevelFilterToggle
+        value={levelFilter}
+        onChange={setLevelFilter}
+        showCollege={hasCollege}
+      />
+
+      <ProfileHeader profile={displayProfile} />
 
       <Tabs tabs={tabs} active={tab} onChange={setTab} />
 
       <Box sx={{ pt: 2.5 }}>
         {tab === 'timeline' &&
-          (data.timeline.length > 0 ? (
-            <CareerTimeline timeline={data.timeline} />
+          (timeline.length > 0 ? (
+            <CareerTimeline timeline={timeline} />
           ) : (
-            <TabEmptyState message="No timeline on file." />
+            <TabEmptyState message="No timeline on file for this level." />
           ))}
 
         {tab === 'tournaments' &&
-          (data.accolades.length > 0 ? (
-            <Tournaments accolades={data.accolades} />
+          (accolades.length > 0 ? (
+            <Tournaments accolades={accolades} />
           ) : (
-            <TabEmptyState message="No tournaments on file." />
+            <TabEmptyState message="No tournaments on file for this level." />
           ))}
 
-        {tab === 'matches' && <MatchHistory matches={data.matches} />}
+        {tab === 'matches' && <MatchHistory matches={matches} />}
 
         {tab === 'opponents' &&
           (headToHead.length > 0 ? (
             <HeadToHead records={headToHead} />
           ) : (
-            <TabEmptyState message="No opponent history on file." />
+            <TabEmptyState message="No opponent history on file for this level." />
           ))}
       </Box>
     </Box>

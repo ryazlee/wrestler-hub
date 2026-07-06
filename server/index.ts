@@ -13,7 +13,7 @@ import {
   twSignalsFromSearch,
 } from './profile-link.js'
 import { parseSearchQuery } from './search-query.js'
-import { fetchWrestler, searchWrestlers, searchWrestlersByHometown } from './trackwrestling.js'
+import { fetchWrestler, fetchTwWeightClass, searchWrestlers, searchWrestlersByHometown } from './trackwrestling.js'
 import { isFloId, isTwId } from './wrestler-id.js'
 import { mergeWrestlerData } from './wrestler-data.js'
 
@@ -135,22 +135,28 @@ app.get('/api/search', async (req, res) => {
     const enriched = await Promise.all(
       merged.map(async (result) => {
         const floId = await resolveFloIdFromTwId(result.twId).catch(() => null)
-        if (!floId) {
-          return { ...result, id: result.twId }
+        if (floId) {
+          const athlete = await fetchFloAthlete(floId).catch(() => null)
+          if (athlete) {
+            const twSignals = twSignalsFromSearch(result)
+            const floSignals = floSignalsFromAthlete(athlete)
+            if (profilesLikelyMatch(twSignals, floSignals)) {
+              return {
+                ...result,
+                floId,
+                id: floId,
+                weightClass: athlete.weightClass,
+              }
+            }
+          }
         }
 
-        const athlete = await fetchFloAthlete(floId).catch(() => null)
-        if (!athlete) {
-          return { ...result, id: result.twId }
+        const weightClass = await fetchTwWeightClass(result.twId).catch(() => undefined)
+        return {
+          ...result,
+          id: result.twId,
+          ...(weightClass ? { weightClass } : {}),
         }
-
-        const twSignals = twSignalsFromSearch(result)
-        const floSignals = floSignalsFromAthlete(athlete)
-        if (!profilesLikelyMatch(twSignals, floSignals)) {
-          return { ...result, id: result.twId }
-        }
-
-        return { ...result, floId, id: floId }
       }),
     )
 

@@ -10,11 +10,9 @@ export function SiteFooter() {
         py: 2.5,
         px: 2,
         textAlign: 'center',
-        borderTop: '1px solid',
-        borderColor: 'divider',
       }}
     >
-      <Typography variant="caption" color="text.secondary">
+      <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
         Created by Ryan{' '}
         <Box component="span" aria-hidden>
           🐸

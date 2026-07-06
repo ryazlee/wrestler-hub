@@ -86,6 +86,7 @@ export interface SearchResult {
   state: string
   birthDate: string
   hometown: string
+  weightClass?: string
   floId?: string
   matchType?: 'name' | 'city'
 }

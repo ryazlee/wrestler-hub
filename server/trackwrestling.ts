@@ -276,6 +276,21 @@ export async function searchWrestlersByHometown(
   }))
 }
 
+export async function fetchTwWeightClass(twId: string): Promise<string | undefined> {
+  const matchRows = await twFetchJson<RawMatchRow[]>(
+    `/AjaxFunctions.jsp?function=getProfileMatchVideosJSP&twIds=${twId}`,
+  ).catch(() => null)
+
+  if (!Array.isArray(matchRows)) return undefined
+
+  for (const row of matchRows) {
+    const weight = row[6]?.trim()
+    if (weight) return weight
+  }
+
+  return undefined
+}
+
 export async function fetchWrestlerTeamName(
   twId: string,
 ): Promise<{ name: string; team: string }> {

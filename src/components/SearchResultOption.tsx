@@ -11,6 +11,7 @@ interface SearchResultOptionProps {
 
 export function SearchResultOption({ option, optionProps }: SearchResultOptionProps) {
   const subtitle = [
+    option.weightClass ? `${option.weightClass} lbs` : null,
     `${option.hometown}, ${option.state}`,
     option.matchType === 'city' ? 'City match' : null,
     option.floId ? 'Flo profile' : 'Trackwrestling only',

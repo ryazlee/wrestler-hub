@@ -4,7 +4,7 @@ import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { useMemo, useState } from 'react'
 import type { Match } from '../types/wrestler'
-import { formatDate, formatResult } from '../utils/stats'
+import { formatDate, formatMatchScore, getMatchOutcome } from '../utils/stats'
 import { WrestlerLink } from './WrestlerLink'
 
 interface MatchHistoryProps {
@@ -95,6 +95,9 @@ export function MatchHistory({ matches }: MatchHistoryProps) {
           const isLoss = match.result === 'L'
           const accentColor = isWin ? WIN_COLOR : isLoss ? LOSS_COLOR : '#9ca3af'
           const accentBg = isWin ? WIN_BG : isLoss ? LOSS_BG : '#f9fafb'
+          const outcome = getMatchOutcome(match)
+          const scoreDetail = formatMatchScore(match)
+          const detail = [scoreDetail, match.event].filter(Boolean).join(' · ')
 
           return (
             <Box
@@ -121,6 +124,19 @@ export function MatchHistory({ matches }: MatchHistoryProps) {
                 <Typography variant="caption" color="text.secondary">
                   {formatDate(match.date)}
                 </Typography>
+                {outcome !== 'Other' && (
+                  <Chip
+                    label={outcome}
+                    size="small"
+                    variant="outlined"
+                    sx={{
+                      height: 22,
+                      fontSize: '0.7rem',
+                      fontWeight: 600,
+                      borderColor: 'divider',
+                    }}
+                  />
+                )}
                 {match.weight && (
                   <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto' }}>
                     {match.weight} lbs
@@ -147,13 +163,15 @@ export function MatchHistory({ matches }: MatchHistoryProps) {
                 )}
               </Typography>
 
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ mt: 0.25, fontSize: '0.85rem' }}
-              >
-                {formatResult(match)} · {match.event}
-              </Typography>
+              {detail && (
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mt: 0.25, fontSize: '0.85rem' }}
+                >
+                  {detail}
+                </Typography>
+              )}
             </Box>
           )
         })}

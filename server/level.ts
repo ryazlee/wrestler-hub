@@ -1,34 +1,37 @@
 export type CareerLevel = 'hs' | 'college' | 'other'
 
-export function classifyCareerLevel(text: string): CareerLevel {
-  const normalized = text.toLowerCase()
+/** Map FloWrestling level strings to our career buckets. */
+export function mapFloLevel(level?: string | null): CareerLevel | undefined {
+  if (!level?.trim()) return undefined
 
+  const normalized = level.trim().toLowerCase().replace(/\s+/g, '-')
+
+  if (normalized === 'high-school' || normalized === 'highschool') return 'hs'
+  if (normalized === 'college' || normalized === 'collegiate') return 'college'
   if (
-    /ncaa|njcaa|naia|collegiate|college|university|\bd1\b|\bd2\b|\bd3\b|division\s*i{1,3}\b/.test(
-      normalized,
-    )
+    normalized === 'youth' ||
+    normalized === 'other' ||
+    normalized === 'international' ||
+    normalized === 'open'
   ) {
-    return 'college'
+    return 'other'
   }
 
-  if (
-    /high school|high-school|middle school|junior high|\bhs\b|youth|cadet|u\d{2}\b/.test(
-      normalized,
-    )
-  ) {
-    return 'hs'
-  }
-
-  return 'hs'
+  return undefined
 }
 
-export function classifyFloLevel(level?: string): CareerLevel {
-  if (!level?.trim()) return 'hs'
-  return classifyCareerLevel(level)
-}
+export function resolveCareerLevel(options: {
+  level?: CareerLevel
+  floLevel?: string | null
+  source?: 'trackwrestling' | 'flowrestling'
+}): CareerLevel {
+  if (options.level) return options.level
 
-export function classifyFromEvent(...parts: (string | undefined)[]): CareerLevel {
-  const text = parts.filter(Boolean).join(' ')
-  if (!text.trim()) return 'hs'
-  return classifyCareerLevel(text)
+  const fromFlo = mapFloLevel(options.floLevel)
+  if (fromFlo) return fromFlo
+
+  // Trackwrestling profiles are overwhelmingly high school.
+  if (options.source === 'trackwrestling') return 'hs'
+
+  return 'other'
 }

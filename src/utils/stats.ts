@@ -107,11 +107,44 @@ export function formatDate(dateStr: string): string {
   })
 }
 
+export type MatchOutcome =
+  | 'Fall'
+  | 'Tech fall'
+  | 'Major decision'
+  | 'Decision'
+  | 'Other'
+
+export function getMatchOutcome(match: Match): MatchOutcome {
+  const text = `${match.method} ${match.score ?? ''}`.toLowerCase()
+
+  if (/\btf\b|tech\s*fall/.test(text)) return 'Tech fall'
+  if (/\bfall\b|\bf\s+\d/.test(text) && !/tech/.test(text)) return 'Fall'
+  if (/major|\bmd\b/.test(text)) return 'Major decision'
+  if (/decision|\bdec\b|sudden|forfeit|default|injury/.test(text)) return 'Decision'
+  return 'Other'
+}
+
+export function formatMatchScore(match: Match): string | null {
+  const method = match.method?.trim() ?? ''
+  const score = match.score?.trim()
+
+  if (score && score !== method && !method.includes(score)) return score
+
+  const parenMatch = method.match(/\(([^)]+)\)\s*$/)
+  if (parenMatch) return parenMatch[1]
+
+  if (!score && method && getMatchOutcome(match) === 'Other') return method
+  return null
+}
+
 export function formatResult(match: Match): string {
-  if (match.score) {
-    return `${match.method} (${match.score})`
-  }
-  return match.method
+  const method = match.method?.trim() ?? ''
+  const score = match.score?.trim()
+
+  if (!score) return method || '—'
+  if (!method) return score
+  if (method === score || method.includes(`(${score})`)) return method
+  return `${method} (${score})`
 }
 
 function pluralize(count: number, singular: string, plural?: string): string {

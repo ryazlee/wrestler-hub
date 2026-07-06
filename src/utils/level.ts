@@ -1,51 +1,42 @@
 import type {
   Accolade,
-  CareerRecord,
+  CareerLevel,
   Match,
   TimelineEntry,
-  WrestlerProfile,
 } from '../types/wrestler'
 
-export type CareerLevel = 'hs' | 'college' | 'other'
 export type LevelFilter = 'all' | 'hs' | 'college'
 
-export function classifyCareerLevel(text: string): CareerLevel {
-  const normalized = text.toLowerCase()
+/** Map FloWrestling level strings to our career buckets. */
+export function mapFloLevel(level?: string | null): CareerLevel | undefined {
+  if (!level?.trim()) return undefined
 
+  const normalized = level.trim().toLowerCase().replace(/\s+/g, '-')
+
+  if (normalized === 'high-school' || normalized === 'highschool') return 'hs'
+  if (normalized === 'college' || normalized === 'collegiate') return 'college'
   if (
-    /ncaa|njcaa|naia|collegiate|college|university|\bd1\b|\bd2\b|\bd3\b|division\s*i{1,3}\b/.test(
-      normalized,
-    )
+    normalized === 'youth' ||
+    normalized === 'other' ||
+    normalized === 'international' ||
+    normalized === 'open'
   ) {
-    return 'college'
+    return 'other'
   }
 
-  if (
-    /high school|high-school|middle school|junior high|\bhs\b|youth|cadet|u\d{2}\b/.test(
-      normalized,
-    )
-  ) {
-    return 'hs'
-  }
-
-  return 'hs'
+  return undefined
 }
 
 export function resolveItemLevel(item: {
   level?: CareerLevel
-  event?: string
-  team?: string
-  opponentSchool?: string
 }): CareerLevel {
   if (item.level) return item.level
-
-  const text = [item.event, item.team, item.opponentSchool].filter(Boolean).join(' ')
-  if (!text.trim()) return 'hs'
-  return classifyCareerLevel(text)
+  // Legacy TW-tagged responses without an explicit level.
+  return 'hs'
 }
 
 export function matchesLevelFilter(
-  item: { level?: CareerLevel; event?: string; team?: string; opponentSchool?: string },
+  item: { level?: CareerLevel },
   filter: LevelFilter,
 ): boolean {
   if (filter === 'all') return true
@@ -72,7 +63,7 @@ export function filterMatches(matches: Match[], filter: LevelFilter): Match[] {
   return matches.filter((match) => matchesLevelFilter(match, filter))
 }
 
-function recordFromMatches(matches: Match[]): CareerRecord {
+function recordFromMatches(matches: Match[]): { wins: number; losses: number } {
   let wins = 0
   let losses = 0
 
@@ -84,7 +75,10 @@ function recordFromMatches(matches: Match[]): CareerRecord {
   return { wins, losses }
 }
 
-function recordFromTimeline(timeline: TimelineEntry[]): CareerRecord {
+function recordFromTimeline(timeline: TimelineEntry[]): {
+  wins: number
+  losses: number
+} {
   let wins = 0
   let losses = 0
 
@@ -148,11 +142,11 @@ export function hasCollegeData(data: {
 }
 
 export function profileForLevel(
-  profile: WrestlerProfile,
+  profile: import('../types/wrestler').WrestlerProfile,
   timeline: TimelineEntry[],
   matches: Match[],
   filter: LevelFilter,
-): WrestlerProfile {
+): import('../types/wrestler').WrestlerProfile {
   if (filter === 'all') return profile
 
   const filteredTimeline = filterTimeline(timeline, filter)

@@ -1,6 +1,15 @@
 import type { SearchResult, WrestlerData } from '../types/wrestler'
 
-const API_BASE = '/api'
+const DEFAULT_PROD_API_BASE = 'https://wrestler-hub-api.onrender.com/api'
+
+function getApiBase(): string {
+  const configured = import.meta.env.VITE_API_BASE?.trim()
+  if (configured) return configured.replace(/\/$/, '')
+  if (import.meta.env.PROD) return DEFAULT_PROD_API_BASE
+  return '/api'
+}
+
+const API_BASE = getApiBase()
 
 export async function search(query: string): Promise<SearchResult[]> {
   const params = new URLSearchParams({ q: query.trim() })

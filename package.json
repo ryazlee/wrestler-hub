@@ -23,7 +23,8 @@
     "express": "^5.2.1",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "react-router-dom": "^7.18.1"
+    "react-router-dom": "^7.18.1",
+    "tsx": "^4.23.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
@@ -34,7 +35,6 @@
     "@vitejs/plugin-react": "^6.0.3",
     "concurrently": "^10.0.3",
     "oxlint": "^1.71.0",
-    "tsx": "^4.23.0",
     "typescript": "~6.0.2",
     "vite": "^8.1.1"
   }

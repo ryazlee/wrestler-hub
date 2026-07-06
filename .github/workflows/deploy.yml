@@ -32,6 +32,8 @@ jobs:
         run: npm ci
 
       - name: Build
+        env:
+          VITE_API_BASE: ${{ vars.VITE_API_BASE || 'https://wrestler-hub-api.onrender.com/api' }}
         run: npm run build
 
       - name: Add SPA fallback

@@ -11,7 +11,23 @@ import { mergeWrestlerData } from './wrestler-data.js'
 const app = express()
 const PORT = Number(process.env.PORT) || 3001
 
-app.use(cors())
+const allowedOrigins = new Set([
+  'http://localhost:5173',
+  'http://localhost:4173',
+  'https://ryazlee.github.io',
+])
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.has(origin)) {
+        callback(null, true)
+        return
+      }
+      callback(null, false)
+    },
+  }),
+)
 app.use(express.json())
 
 app.get('/api/health', (_req, res) => {

@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: wrestler-hub-api
+    runtime: node
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm run start:server
+    healthCheckPath: /api/health
